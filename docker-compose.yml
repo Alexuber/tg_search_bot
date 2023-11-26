@@ -1,0 +1,77 @@
+version: "3.8"
+
+x-web:
+  &x-web-common
+  build:
+    context: .
+    dockerfile: ./deploy/web/Dockerfile
+  restart: always
+  environment:
+    &x-web-environment
+    DEBUG: ${DEBUG}
+    DB_NAME: ${DB_NAME}
+    DB_PASSWORD: ${DB_PASSWORD}
+    DB_USER: ${DB_USER}
+    DB_HOST: ${DB_HOST}
+    DB_PORT: ${DB_PORT}
+    TELEGRAM_BOT_API_KEY: ${TELEGRAM_BOT_API_KEY}
+    TELEGRAM_API_ID: ${TELEGRAM_API_ID}
+    TELEGRAM_API_HASH: ${TELEGRAM_API_HASH}
+    ALLOW_HOST: ${ALLOW_HOST}
+    CLIENT_SESSION_SEARCH: ${CLIENT_SESSION_SEARCH}
+    CLIENT_SESSION_BOT: ${CLIENT_SESSION_BOT}
+    MAX_GROUPS_PER_USER: ${MAX_GROUPS_PER_USER}
+    MAX_ANSWERS_PER_REQUEST: ${MAX_ANSWERS_PER_REQUEST}
+    MAX_REQUESTS_PER_DAY: ${MAX_REQUESTS_PER_DAY}
+    MAX_LENGTH_FOR_MESSAGE: ${MAX_LENGTH_FOR_MESSAGE}
+    BOT_RECONNECT_TIMER_MIN: ${BOT_RECONNECT_TIMER_MIN}
+    CHAT_TEXT_START: ${CHAT_TEXT_START}
+    CHAT_TEXT_SEARCH: ${CHAT_TEXT_SEARCH}
+    CHAT_TEXT_SEARCH_RESULT: ${CHAT_TEXT_SEARCH_RESULT}
+    CHAT_TEXT_ADD_CHAT_REJECT_MAX: ${CHAT_TEXT_ADD_CHAT_REJECT_MAX}
+    CHAT_TEXT_ADD_CHAT: ${CHAT_TEXT_ADD_CHAT}
+    CHAT_TEXT_GROUP_LIST: ${CHAT_TEXT_GROUP_LIST}
+    CHAT_TEXT_FAILED: ${CHAT_TEXT_FAILED}
+    CHAT_TEXT_SUCCESS: ${CHAT_TEXT_SUCCESS}
+services:
+  db:
+    image: postgres:15
+    container_name: db
+    restart: always
+    volumes:
+      - ./db_data/:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_HOST_AUTH_METHOD=trust
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+      - POSTGRES_DB=${DB_NAME}
+
+  web:
+    <<: *x-web-common
+    environment:
+      <<: *x-web-environment
+      SECRET_KEY: ${SECRET_KEY_SEARCH}
+      DJANGO_SETTINGS_MODULE: ${DJANGO_SETTINGS_MODULE_BACK}
+    container_name: web
+    command: >
+      bash -c "python manage.py check && python manage.py migrate --noinput && python manage.py collectstatic --noinput && gunicorn config.wsgi:application  --timeout 120 --log-level debug --bind 0.0.0.0:8000 --reload"
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/code:cached
+    depends_on:
+      - db
+
+  bot:
+    <<: *x-web-common
+    environment:
+      <<: *x-web-environment
+      SECRET_KEY: ${SECRET_KEY_BOT}
+      DJANGO_SETTINGS_MODULE: ${DJANGO_SETTINGS_MODULE_BOT}
+    container_name: bot
+    command: bash -c "sleep 5 && python3 run_bot.py "
+    volumes:
+      - .:/code:cached
+    depends_on:
+      - web
+      - db
