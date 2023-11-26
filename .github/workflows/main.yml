@@ -2,7 +2,7 @@ name: search gitflow
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
 
 jobs:
   build:
@@ -16,7 +16,7 @@ jobs:
           key: ${{ secrets.KEY }}
           port: ${{ secrets.PORT }}
           script: |
-            cd ~/tg_search
+            cd ~/tg_search_bot
             ls -la
             eval `ssh-agent`
             ssh-add ~/.ssh/id_timeweb

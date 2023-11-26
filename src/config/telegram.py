@@ -7,8 +7,8 @@ TELEGRAM_API_KEY = os.environ.get("TELEGRAM_API_KEY", None)
 TELEGRAM_API_ID = os.environ.get("TELEGRAM_API_ID", None)
 TELEGRAM_API_HASH = os.environ.get("TELEGRAM_API_HASH", None)
 
-CLIENT_SESSION_SEARCH = os.environ.get("CLIENT_SESSION_SEARCH", "search")
-CLIENT_SESSION_BOT = os.environ.get("CLIENT_SESSION_BOT", "bot")
+CLIENT_SESSION_SEARCH = os.environ.get("CLIENT_SESSION_SEARCH", "newaccount")
+CLIENT_SESSION_BOT = os.environ.get("CLIENT_SESSION_BOT", "newbot")
 
 BOT_RECONNECT_TIMER_MIN = int(os.environ.get("BOT_RECONNECT_TIMER_MIN", default=1)) * 60
 MAX_GROUPS_PER_USER = int(os.environ.get("MAX_GROUPS_PER_USER", default=5))
